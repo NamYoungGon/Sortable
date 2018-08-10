@@ -1,20 +1,42 @@
 (function () {
   var Sortable = (function () {
+    /**
+     * 기본 옵션
+     * 
+     * transitionDuration - (Number) 재정렬 아이템의 transitionDuration 시간
+     * sameItemSize - (Boolean) 아이템들의 Height 가 동일한지에 대한 여부
+     * scrollContainer - (Element) Scroll 이 있는 Element
+     */
     const defaultOptions = {
       transitionDuration: 300, // ms
       sameItemSize: true,
       scrollContainer: null
     }
 
+    /**
+     * 깊은 복사
+     * 
+     * @param {Object} obj
+     */
     function deepCopy(obj) {
       return JSON.parse(JSON.stringify(obj))
     }
 
+    /**
+     * 요소의 translate y 값을 반환한다.
+     * 
+     * @param {Element} element
+     */
     function getTransformY(element) {
       const split = element.style.getPropertyValue('transform').replace(/[^0-9\-.,]/g, '').split(',');
       return parseInt(split[1], 10);
     }
 
+    /**
+     * 요소의 getBoundingClientRect() 결과 값을 반환한다. (width, height, top, left, x, y, ...)
+     * 
+     * @param {Element}} element 
+     */
     function getElementInfo(element) {
       return element.getBoundingClientRect();
     }
@@ -53,7 +75,7 @@
         let isSorting = false;      // sorting 중 여부
         let isReSorting = false;    // 재정렬 진행중 여부
         let handleItem;             // drag 대상 item (down 시 hidden, up 시 visible. 그외 작업 없음)
-        let handleItemHeight;             // drag 대상 item (down 시 hidden, up 시 visible. 그외 작업 없음)
+        let handleItemHeight;       // drag 대상 item (down 시 hidden, up 시 visible. 그외 작업 없음)
         let x = 0;                  // down 시 pageX 값
         let y = 0;                  // down 시 pageY 값
         let initAndMovingDiff = 0;  // down 시 포인터와 handle item top 간의 차이
@@ -100,7 +122,7 @@
             isSorting && end.call(this, e.touches[0]);
           });
         } else {
-          container
+          container // .row
             .on('mousedown', handleQuery, function (e) {
               start.call(this, e);
             });
@@ -210,14 +232,18 @@
             },
             start(diff) {
               this.clear();
-              var test = 1;
-              timer = setInterval(() => {
-                diff = diff > 100 ? 100 : diff;
+
+              let interval = () => {
+                diff = diff > 50 ? 50 : diff;
                 scrollContainer.scrollTop += diff;
+
                 // handle 로 인한 재정렬 체크
                 calcContainerTop();
                 detectIndexChange(getHandleItemY());
-              }, 50);
+              }
+
+              interval();
+              timer = setInterval(interval, 50);
             }
           }
         })();
